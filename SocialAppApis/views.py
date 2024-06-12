@@ -5,10 +5,11 @@ from django.contrib.auth import authenticate,login
 from rest_framework.authtoken.models import Token
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import User
-from .serializers import UserSerializer
+from .serializers import UserSerializer, FriendSerializer
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.pagination import PageNumberPagination
 from .filters import UserFilter
+from rest_framework.decorators import action
 
 # Create your views here.
 class UserRegister(generics.CreateAPIView):
@@ -44,4 +45,15 @@ class UserViewSet(GenericViewSet,generics.RetrieveAPIView, generics.ListAPIView,
     pagination_class.page_size = 10
     filter_backends = [DjangoFilterBackend]
     filterset_class = UserFilter
+
+
+    @action(detail=False, methods=['get'], url_path="friends")
+    def listAllFriends(self, request):
+        userid = request.user.id
+        currentUser =  self.queryset.filter(pk = userid).first()
+        friendList = currentUser.friends.all()
+        serializer = FriendSerializer(friendList, many=True) 
+        return Response({"Friends":serializer.data})
+
+
    
